@@ -19,7 +19,7 @@
 
 require 'rubygems'
 require 'rake'
-require 'spec/rake/spectask'
+# require 'spec/rake/spectask'
 
 THRIFT = '../../compiler/cpp/thrift'
 
@@ -27,17 +27,17 @@ task :default => [:spec]
 
 task :spec => [:'gen-rb', :realspec]
 
-Spec::Rake::SpecTask.new(:realspec) do |t|
-  t.spec_files = FileList['spec/**/*_spec.rb']
-  t.spec_opts = ['--color']
-end
+# Spec::Rake::SpecTask.new(:realspec) do |t|
+#   t.spec_files = FileList['spec/**/*_spec.rb']
+#   t.spec_opts = ['--color']
+# end
 
-Spec::Rake::SpecTask.new(:'spec:rcov') do |t|
-  t.spec_files = FileList['spec/**/*_spec.rb']
-  t.spec_opts = ['--color']
-  t.rcov = true
-  t.rcov_opts = ['--exclude', '^spec,/gems/']
-end
+# Spec::Rake::SpecTask.new(:'spec:rcov') do |t|
+#   t.spec_files = FileList['spec/**/*_spec.rb']
+#   t.spec_opts = ['--color']
+#   t.rcov = true
+#   t.rcov_opts = ['--exclude', '^spec,/gems/']
+# end
 
 desc 'Run the compiler tests (requires full thrift checkout)'
 task :test do
