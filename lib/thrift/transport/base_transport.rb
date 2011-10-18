@@ -1,4 +1,4 @@
-# encoding: ascii-8bit
+# encoding: utf-8
 # 
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements. See the NOTICE file
@@ -85,8 +85,8 @@ module Thrift
     def read_all(size)
       return '' if size <= 0
       buf = read(size)
-      while (buf.length < size)
-        chunk = read(size - buf.length)
+      while (buf.bytesize < size)
+        chunk = read(size - buf.bytesize)
         buf << chunk
       end
     

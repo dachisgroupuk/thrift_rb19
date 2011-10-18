@@ -1,4 +1,4 @@
-# encoding: ascii-8bit
+# encoding: utf-8
 # 
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements. See the NOTICE file
@@ -22,8 +22,8 @@ module Thrift
   class FramedTransport < BaseTransport
     def initialize(transport, read=true, write=true)
       @transport = transport
-      @rbuf      = ''
-      @wbuf      = ''
+      @rbuf      = ''.force_encoding('utf-8')
+      @wbuf      = ''.force_encoding('utf-8')
       @read      = read
       @write     = write
       @index      = 0
@@ -46,7 +46,7 @@ module Thrift
 
       return '' if sz <= 0
 
-      read_frame if @index >= @rbuf.length
+      read_frame if @index >= @rbuf.bytesize
 
       @index += sz
       @rbuf.slice(@index - sz, sz) || ''
@@ -79,9 +79,11 @@ module Thrift
 
 
     def write(buf,sz=nil)
-      return @transport.write(buf) unless @write
+      buff = buf.dup
+      buff.force_encoding("utf-8")
+      return @transport.write(buff) unless @write
 
-      @wbuf << (sz ? buf[0...sz] : buf)
+      @wbuf << (sz ? buff[0...sz] : buff)
     end
 
     #
@@ -91,11 +93,11 @@ module Thrift
     def flush
       return @transport.flush unless @write
 
-      out = [@wbuf.length].pack('N')
+      out = [@wbuf.bytesize].pack('N').force_encoding('utf-8')
       out << @wbuf
       @transport.write(out)
       @transport.flush
-      @wbuf = ''
+      @wbuf = ''.force_encoding('utf-8')
     end
 
     private

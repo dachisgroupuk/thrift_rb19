@@ -108,7 +108,7 @@ module Thrift
     end
 
     def write_string(str)
-      write_i32(str.length)
+      write_i32(str.bytesize)
       trans.write(str)
     end
 
@@ -216,7 +216,7 @@ module Thrift
     def read_string
       sz = read_i32
       dat = trans.read_all(sz)
-      dat
+      dat.force_encoding('utf-8')
     end
 
   end
