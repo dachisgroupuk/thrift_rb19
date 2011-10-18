@@ -1,4 +1,4 @@
-# encoding: utf-8
+# encoding: ascii-8bit
 # 
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements. See the NOTICE file
@@ -22,8 +22,8 @@ module Thrift
   class FramedTransport < BaseTransport
     def initialize(transport, read=true, write=true)
       @transport = transport
-      @rbuf      = "".force_encoding("utf-8")
-      @wbuf      = "".force_encoding("utf-8")
+      @rbuf      = ''
+      @wbuf      = ''
       @read      = read
       @write     = write
       @index      = 0
@@ -46,17 +46,42 @@ module Thrift
 
       return '' if sz <= 0
 
-      read_frame if @index >= @rbuf.bytesize
+      read_frame if @index >= @rbuf.length
 
       @index += sz
       @rbuf.slice(@index - sz, sz) || ''
     end
 
+    def read_byte
+      return @transport.read_byte() unless @read
+
+      read_frame if @index >= @rbuf.length
+
+      # The read buffer has some data now, read a single byte. Using get_string_byte() avoids
+      # allocating a temp string of size 1 unnecessarily.
+      @index += 1
+      return ::Thrift::TransportUtils.get_string_byte(@rbuf, @index - 1)
+    end
+
+    def read_into_buffer(buffer, size)
+      i = 0
+      while i < size
+        read_frame if @index >= @rbuf.length
+
+        # The read buffer has some data now, so copy bytes over to the output buffer.
+        byte = ::Thrift::TransportUtils.get_string_byte(@rbuf, @index)
+        ::Thrift::TransportUtils.set_string_byte(buffer, i, byte)
+        @index += 1
+        i += 1
+      end
+      i
+    end
+
+
     def write(buf,sz=nil)
-      buff = buf.dup
-      buff.force_encoding("utf-8")
-      return @transport.write(buff) unless @write
-      @wbuf << (sz ? buff[0...sz] : buff)
+      return @transport.write(buf) unless @write
+
+      @wbuf << (sz ? buf[0...sz] : buf)
     end
 
     #
@@ -66,11 +91,11 @@ module Thrift
     def flush
       return @transport.flush unless @write
 
-      out = [@wbuf.bytesize].pack('N').force_encoding("utf-8")
+      out = [@wbuf.length].pack('N')
       out << @wbuf
       @transport.write(out)
       @transport.flush
-      @wbuf = "".force_encoding("utf-8")
+      @wbuf = ''
     end
 
     private
